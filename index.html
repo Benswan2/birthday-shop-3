@@ -452,23 +452,27 @@ function placeOrder(){
   emailjs.send('service_v6q6vp9', 'template_70lnl83', {
     order_summary: lines,
     order_total: '$' + total.toFixed(2) + ' AUD'
-  }).then(() => {
+  })
+  .then(() => {
     closeConfirm();
     closeCart();
     cart = [];
     updateCart();
     showToast('✓ ORDER PLACED — email sent! 🎂');
-  }
-.catch((err) => {
-  console.log('FULL ERROR:', err);
-  console.log('STATUS:', err.status);
-  console.log('TEXT:', err.text);
+  })
+  .catch((err) => {
+    console.log('FULL ERROR:', err);
+    console.log('STATUS:', err.status);
+    console.log('TEXT:', err.text);
 
-  alert(`Status: ${err.status}\n${err.text}`);
+    alert(`Status: ${err.status}\n${err.text}`);
 
-  closeConfirm();
-  showToast('⚠ Order saved — email failed');
-});
+    closeConfirm();
+    showToast('⚠ Order saved — email failed');
+  });
+
+  confirmBtn.textContent = 'CONFIRM';
+  confirmBtn.disabled = false;
 }
 
 let toastTimer;
