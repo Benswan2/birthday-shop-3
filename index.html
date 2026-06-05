@@ -458,8 +458,8 @@ function placeOrder(){
     closeCart();
     cart = [];
     updateCart();
-    showToast('✓ ORDER PLACED — email sent! 🎂');
-  })
+    showToast('✓ ORDER PLACED — email sent! 🎂')};
+  
   .catch((err) => {
     console.log('FULL ERROR:', err);
     console.log('STATUS:', err.status);
