@@ -462,8 +462,12 @@ function placeOrder(){
   console.log('FULL ERROR:', err);
   console.log('STATUS:', err.status);
   console.log('TEXT:', err.text);
+
   alert(`Status: ${err.status}\n${err.text}`);
-});
+
+  closeConfirm();
+  showToast('⚠ Order saved — email failed');
+})
 }
 
 let toastTimer;
