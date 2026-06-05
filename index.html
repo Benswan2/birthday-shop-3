@@ -458,14 +458,12 @@ function placeOrder(){
     cart = [];
     updateCart();
     showToast('✓ ORDER PLACED — email sent! 🎂');
-  }).catch((err) => {
-    console.error('EmailJS error:', err);
-    closeConfirm();
-    showToast('⚠ Order saved — email failed');
-  }).finally(() => {
-    confirmBtn.textContent = 'CONFIRM';
-    confirmBtn.disabled = false;
-  });
+.catch((err) => {
+  console.log('FULL ERROR:', err);
+  console.log('STATUS:', err.status);
+  console.log('TEXT:', err.text);
+  alert(`Status: ${err.status}\n${err.text}`);
+});
 }
 
 let toastTimer;
