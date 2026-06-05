@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STORE / ESP32</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>emailjs.init('L2Kbnp3fCJ2wd9mVY');</script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#FFF7F8;
+  --charcoal:#FDF1F4;
+  --charcoal2:#FBE8EC;
+  --dark:#F8DDE4;
+  --mid:#F5D3DD;
+  --light:#F1C7D4;
+  --silver:#ECBACA;
+  --white:#E6ADBf;
+  --yellow:#DF9FB4;
+  --yellow-dim: #D892A9;
+  --yellow-glow:#D0849E;
+}
+html{scroll-behavior:smooth}
+body{background:var(--black);font-family:'DM Sans',sans-serif;color:var(--white);overflow-x:hidden;min-height:100vh}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--charcoal)}
+::-webkit-scrollbar-thumb{background:var(--yellow);border-radius:2px}
+
+#progress{position:fixed;top:0;left:0;height:2px;background:var(--yellow);z-index:200;width:0;transition:width .15s linear;box-shadow:0 0 10px var(--yellow)}
+
+header{position:sticky;top:0;z-index:100;background:rgba(10,10,10,.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--dark);padding:14px 40px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:.08em;color:var(--white)}
+.logo span{color:var(--yellow)}
+.header-mono{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--light);text-transform:uppercase}
+.cart-btn{background:var(--yellow);color:var(--black);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.15em;border:none;padding:8px 18px;border-radius:3px;cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:700;transition:opacity .2s}
+.cart-btn:hover{opacity:.85}
+.cart-count{background:var(--black);color:var(--yellow);border-radius:2px;padding:1px 6px;font-size:10px}
+
+.hero{padding:80px 40px 60px;position:relative;overflow:hidden;border-bottom:1px solid var(--dark)}
+.bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);background-size:60px 60px;pointer-events:none}
+.y-bar{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--yellow);box-shadow:0 0 20px var(--yellow-glow)}
+.hero-inner{max-width:1100px;margin:0 auto;position:relative}
+.label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:var(--yellow);margin-bottom:14px;display:block}
+.y-line{display:inline-block;width:44px;height:3px;background:var(--yellow);margin-bottom:22px;border-radius:2px}
+h1{font-family:'Bebas Neue',sans-serif;font-size:clamp(56px,9vw,120px);line-height:.9;letter-spacing:.02em;color:var(--white)}
+.hero-sub{font-size:15px;line-height:1.75;color:var(--silver);font-weight:300;max-width:540px;margin-top:20px}
+.stat-row{display:flex;gap:44px;flex-wrap:wrap;margin-top:36px}
+.stat{display:flex;flex-direction:column;gap:4px}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:clamp(36px,5vw,60px);color:var(--yellow);line-height:1}
+.stat-desc{font-size:11px;color:var(--light);text-transform:uppercase;letter-spacing:.15em;font-family:'JetBrains Mono',monospace}
+
+.cat-bar{padding:0 40px;border-bottom:1px solid var(--dark);background:var(--charcoal);position:sticky;top:57px;z-index:90;display:flex;gap:0;overflow-x:auto}
+.cat-tab{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--light);border:none;background:none;padding:16px 22px;cursor:pointer;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;white-space:nowrap}
+.cat-tab:hover{color:var(--silver)}
+.cat-tab.active{color:var(--yellow);border-bottom-color:var(--yellow)}
+
+.catalog{max-width:1100px;margin:0 auto;padding:40px 40px 100px}
+.section-head{margin-bottom:28px}
+.section-head h2{font-family:'Bebas Neue',sans-serif;font-size:clamp(32px,5vw,60px);line-height:1;letter-spacing:.02em;color:var(--white)}
+
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.product-card{background:var(--charcoal2);border:1px solid var(--dark);border-radius:6px;overflow:hidden;cursor:pointer;transition:border-color .25s,transform .25s}
+.product-card:hover{border-color:var(--yellow);transform:translateY(-4px)}
+.product-card.selected{border-color:var(--yellow);box-shadow:0 0 0 1px var(--yellow),0 0 30px var(--yellow-glow)}
+.product-img{height:160px;background:var(--charcoal);display:flex;align-items:center;justify-content:center;font-size:52px;position:relative;border-bottom:1px solid var(--dark)}
+.product-badge{position:absolute;top:10px;left:10px;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;background:var(--yellow);color:var(--black);padding:3px 8px;border-radius:2px;font-weight:700}
+.product-badge.oos{background:var(--mid);color:var(--silver)}
+.product-info{padding:16px}
+.product-name{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;color:var(--white);margin-bottom:4px}
+.product-desc{font-size:12px;color:var(--light);line-height:1.5;margin-bottom:14px}
+.product-footer{display:flex;align-items:center;justify-content:space-between}
+.product-price{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--yellow);letter-spacing:.02em}
+.product-price span{font-size:14px;color:var(--light);font-family:'DM Sans',sans-serif}
+.add-btn{background:var(--yellow-dim);border:1px solid var(--yellow);color:var(--yellow);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.15em;padding:7px 14px;border-radius:3px;cursor:pointer;transition:background .2s,color .2s}
+.add-btn:hover{background:var(--yellow);color:var(--black)}
+.add-btn:disabled{background:none;border-color:var(--mid);color:var(--mid);cursor:not-allowed}
+
+#detail-panel{position:fixed;right:0;top:0;bottom:0;width:420px;background:var(--charcoal);border-left:1px solid var(--dark);z-index:300;transform:translateX(100%);transition:transform .45s cubic-bezier(.16,1,.3,1);display:flex;flex-direction:column;overflow:hidden}
+#detail-panel.open{transform:translateX(0)}
+.panel-header{padding:20px 24px;border-bottom:1px solid var(--dark);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.panel-close{background:none;border:none;color:var(--light);font-size:22px;cursor:pointer;padding:4px;transition:color .2s}
+.panel-close:hover{color:var(--yellow)}
+.panel-scroll{flex:1;overflow-y:auto;padding:24px}
+.panel-emoji{font-size:80px;text-align:center;margin-bottom:20px;display:block}
+.panel-name{font-family:'Bebas Neue',sans-serif;font-size:48px;letter-spacing:.04em;line-height:1;margin-bottom:8px}
+.panel-price{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--yellow);margin-bottom:20px}
+.panel-price span{font-size:16px;font-family:'DM Sans',sans-serif;color:var(--light)}
+.panel-desc{font-size:14px;color:var(--silver);line-height:1.75;margin-bottom:24px}
+.panel-specs{background:var(--charcoal2);border:1px solid var(--dark);border-radius:4px;overflow:hidden;margin-bottom:24px}
+.spec-row{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--dark);font-size:12px}
+.spec-row:last-child{border-bottom:none}
+.spec-key{font-family:'JetBrains Mono',monospace;color:var(--light);letter-spacing:.1em}
+.spec-val{color:var(--silver);font-weight:500}
+.panel-qty{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.qty-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--light)}
+.qty-ctrl{display:flex;align-items:center;gap:0;border:1px solid var(--dark);border-radius:3px;overflow:hidden}
+.qty-btn{background:var(--charcoal2);border:none;color:var(--silver);font-size:18px;width:36px;height:36px;cursor:pointer;transition:background .2s;font-family:'JetBrains Mono',monospace}
+.qty-btn:hover{background:var(--dark)}
+.qty-num{background:var(--charcoal);color:var(--white);font-family:'JetBrains Mono',monospace;font-size:14px;width:44px;text-align:center;padding:8px 0;border-left:1px solid var(--dark);border-right:1px solid var(--dark)}
+.panel-add-btn{width:100%;background:var(--yellow);color:var(--black);font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.1em;border:none;padding:14px;border-radius:3px;cursor:pointer;transition:opacity .2s;margin-bottom:10px}
+.panel-add-btn:hover{opacity:.88}
+.panel-add-btn:disabled{background:var(--mid);color:var(--dark);cursor:not-allowed}
+.panel-footer{padding:16px 24px;border-top:1px solid var(--dark);flex-shrink:0}
+
+#cart-drawer{position:fixed;right:0;top:0;bottom:0;width:380px;background:var(--charcoal2);border-left:1px solid var(--dark);z-index:400;transform:translateX(100%);transition:transform .45s cubic-bezier(.16,1,.3,1);display:flex;flex-direction:column}
+#cart-drawer.open{transform:translateX(0)}
+.cart-head{padding:20px 24px;border-bottom:1px solid var(--dark);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.cart-head h3{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:.06em}
+.cart-items{flex:1;overflow-y:auto;padding:16px 24px}
+.cart-item{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--dark)}
+.cart-item-emoji{font-size:28px;width:48px;height:48px;background:var(--charcoal);border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cart-item-info{flex:1}
+.cart-item-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.04em}
+.cart-item-qty{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--light);margin-top:2px}
+.cart-item-price{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--yellow)}
+.remove-btn{background:none;border:none;color:var(--mid);cursor:pointer;font-size:16px;padding:4px;transition:color .2s}
+.remove-btn:hover{color:#e55}
+.cart-empty{text-align:center;padding:60px 24px;color:var(--mid);font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.15em}
+.cart-empty .cart-empty-icon{font-size:48px;display:block;margin-bottom:16px;opacity:.3}
+.cart-foot{padding:20px 24px;border-top:1px solid var(--dark);flex-shrink:0}
+.cart-total-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px}
+.cart-total-label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--light);text-transform:uppercase}
+.cart-total-val{font-family:'Bebas Neue',sans-serif;font-size:40px;color:var(--yellow)}
+.checkout-btn{width:100%;background:var(--yellow);color:var(--black);font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.1em;border:none;padding:14px;border-radius:3px;cursor:pointer;transition:opacity .2s}
+.checkout-btn:hover{opacity:.88}
+.checkout-btn:disabled{background:var(--mid);color:var(--dark);cursor:not-allowed}
+
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:250;opacity:0;pointer-events:none;transition:opacity .35s}
+#overlay.open{opacity:1;pointer-events:all}
+
+#toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--yellow);color:var(--black);font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.15em;padding:12px 24px;border-radius:3px;z-index:600;transition:transform .35s cubic-bezier(.16,1,.3,1);white-space:nowrap}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+#confirm-modal{position:fixed;inset:0;z-index:700;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+#confirm-modal.open{opacity:1;pointer-events:all}
+.modal-bg{position:absolute;inset:0;background:rgba(0,0,0,.85)}
+.modal-box{position:relative;background:var(--charcoal);border:1px solid var(--yellow);border-radius:6px;padding:40px;max-width:440px;width:90%;text-align:center}
+.modal-icon{font-size:56px;display:block;margin-bottom:16px}
+.modal-box h3{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:.06em;margin-bottom:10px}
+.modal-box p{font-size:14px;color:var(--silver);line-height:1.6;margin-bottom:28px}
+.modal-actions{display:flex;gap:12px;justify-content:center}
+.modal-cancel{background:none;border:1px solid var(--dark);color:var(--light);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.15em;padding:11px 24px;border-radius:3px;cursor:pointer;transition:border-color .2s,color .2s}
+.modal-cancel:hover{border-color:var(--silver);color:var(--white)}
+.modal-confirm{background:var(--yellow);color:var(--black);font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:.1em;border:none;padding:11px 32px;border-radius:3px;cursor:pointer;transition:opacity .2s}
+.modal-confirm:hover{opacity:.88}
+
+.cat-section{margin-bottom:56px;display:none}
+.cat-section.active{display:block}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.product-card{animation:fadeUp .5s both}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<header>
+  <div class="logo">ESP<span>STORE</span></div>
+  <div class="header-mono">192.168.4.1 / shop</div>
+  <button class="cart-btn" onclick="openCart()">
+    ▸ CART <span class="cart-count" id="cart-count">0</span>
+  </button>
+</header>
+
+<div class="hero">
+  <div class="bg-grid"></div>
+  <div class="y-bar"></div>
+  <div class="hero-inner">
+    <span class="label">Happy 21st My love</span>
+    <div class="y-line"></div>
+    <h1>THE BIRTHDAY<br><span style="color:var(--yellow)">SHOP</span></h1>
+    <p class="hero-sub">I heard your birthday was coming up soon and I wanted to make you a cute little shop so you can pick out some of your presants</p>
+    <div class="stat-row">
+      <div class="stat"><span class="stat-num" id="stat-items">12</span><span class="stat-desc">Choices unless you choose Suprise then endless possibilities</span></div>
+      <div class="stat"><span class="stat-num" id="stat-cats">4</span><span class="stat-desc">You and only you</span></div>
+      <div class="stat"><span class="stat-num">24/7</span><span class="stat-desc">The time of the week when I love you moe</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="cat-bar" id="cat-bar">
+  <button class="cat-tab active" data-cat="all">All Items</button>
+  <button class="cat-tab" data-cat="perfume">perfume</button>
+  <button class="cat-tab" data-cat="cloths">cloths</button>
+  <button class="cat-tab" data-cat="tech">tech</button>
+  <button class="cat-tab" data-cat="Ben Suprise / Activities">Ben Suprise / Activities</button>
+</div>
+
+<div class="catalog">
+  <div class="cat-section active" id="sec-perfume" data-cat="perfume">
+    <div class="section-head"><span class="label"></span><h2>perfume</h2></div>
+    <div class="product-grid" id="grid-perfume"></div>
+  </div>
+  <div class="cat-section active" id="sec-cloths" data-cat="cloths">
+    <div class="section-head"><span class="label"></span><h2>cloths</h2></div>
+    <div class="product-grid" id="grid-cloths"></div>
+  </div>
+  <div class="cat-section active" id="sec-tech" data-cat="tech">
+    <div class="section-head"><span class="label"></span><h2>tech</h2></div>
+    <div class="product-grid" id="grid-tech"></div>
+  </div>
+  <div class="cat-section active" id="sec-Ben Suprise / Activities" data-cat="Ben Suprise / Activities">
+    <div class="section-head"><span class="label"></span><h2>Ben Suprise / Activities</h2></div>
+    <div class="product-grid" id="grid-Ben Suprise / Activities"></div>
+  </div>
+</div>
+
+<div id="detail-panel">
+  <div class="panel-header">
+    <span class="label" style="margin:0" id="panel-cat-label">// Product Detail</span>
+    <button class="panel-close" onclick="closeDetail()">✕</button>
+  </div>
+  <div class="panel-scroll">
+    <span class="panel-emoji" id="panel-emoji">🛒</span>
+    <div class="panel-name" id="panel-name">—</div>
+    <div class="panel-price" id="panel-price">$0.00 <span>AUD</span></div>
+    <p class="panel-desc" id="panel-desc">—</p>
+    <div class="panel-specs" id="panel-specs"></div>
+    <div class="panel-qty">
+      <span class="qty-label">Qty</span>
+      <div class="qty-ctrl">
+        <button class="qty-btn" onclick="changeQty(-1)">−</button>
+        <div class="qty-num" id="qty-num">1</div>
+        <button class="qty-btn" onclick="changeQty(1)">+</button>
+      </div>
+    </div>
+    <button class="panel-add-btn" id="panel-add-btn" onclick="addToCart()">ADD TO CART</button>
+  </div>
+  <div class="panel-footer">
+    <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mid);letter-spacing:.15em">SKU: <span id="panel-sku">—</span></span>
+  </div>
+</div>
+
+<div id="cart-drawer">
+  <div class="cart-head">
+    <h3>Cart</h3>
+    <button class="panel-close" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cart-items">
+    <div class="cart-empty"><span class="cart-empty-icon">🛒</span>YOUR CART IS EMPTY</div>
+  </div>
+  <div class="cart-foot">
+    <div class="cart-total-row">
+      <span class="cart-total-label">Total</span>
+      <span class="cart-total-val" id="cart-total">$0.00</span>
+    </div>
+    <button class="checkout-btn" id="checkout-btn" onclick="openConfirm()" disabled>PLACE ORDER →</button>
+  </div>
+</div>
+
+<div id="overlay" onclick="closeAll()"></div>
+<div id="toast"></div>
+
+<div id="confirm-modal">
+  <div class="modal-bg" onclick="closeConfirm()"></div>
+  <div class="modal-box">
+    <span class="modal-icon">🎂</span>
+    <h3>Confirm Order</h3>
+    <p id="confirm-summary">You're about to place your birthday order!</p>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeConfirm()">CANCEL</button>
+      <button class="modal-confirm" onclick="placeOrder()">CONFIRM</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const products = [
+  { id:'d1', cat:'perfume', emoji:'🥤', name:'Cola Classic', price:2.50, desc:'Ice cold classic cola. Dispensed from slot A1. Always refreshing.', specs:{Size:'330ml', Temp:'Cold', Slot:'A1', Stock:'8'}, sku:'DRK-001', badge:'COLD', inStock:true },
+  { id:'d2', cat:'perfume', emoji:'🧃', name:'Orange Juice', price:3.00, desc:'Fresh squeezed style OJ. Packed with vitamin C.', specs:{Size:'250ml', Temp:'Chilled', Slot:'A2', Stock:'5'}, sku:'DRK-002', badge:'FRESH', inStock:true },
+  { id:'d3', cat:'perfume', emoji:'☕', name:'Flat White', price:4.50, desc:'Rich espresso with silky steamed milk. Ground fresh daily.', specs:{Size:'200ml', Temp:'Hot', Slot:'B1', Stock:'12'}, sku:'DRK-003', badge:'HOT', inStock:true },
+  { id:'d4', cat:'perfume', emoji:'🫖', name:'Green Tea', price:3.50, desc:'Premium Japanese sencha green tea. Calming and light.', specs:{Size:'250ml', Temp:'Hot', Slot:'B2', Stock:'0'}, sku:'DRK-004', badge:'OUT OF STOCK', inStock:false },
+  { id:'s1', cat:'cloths', emoji:'🍫', name:'Choc Bar', price:2.00, desc:'Classic milk chocolate bar. 45g of pure happiness.', specs:{Weight:'45g', Slot:'C1', Allergens:'Dairy, Nuts', Stock:'15'}, sku:'SNK-001', badge:'POPULAR', inStock:true },
+  { id:'s2', cat:'cloths', emoji:'🥜', name:'Mixed Nuts', price:3.50, desc:'Roasted and salted mixed nuts. High protein snack.', specs:{Weight:'80g', Slot:'C2', Allergens:'Tree Nuts', Stock:'9'}, sku:'SNK-002', badge:null, inStock:true },
+  { id:'s3', cat:'cloths', emoji:'🍿', name:'Popcorn', price:2.50, desc:'Light and airy salted popcorn. Movie-style crunch.', specs:{Weight:'30g', Slot:'C3', Allergens:'None', Stock:'20'}, sku:'SNK-003', badge:'NEW', inStock:true },
+  { id:'s4', cat:'cloths', emoji:'🍪', name:'Choc Chip Cookie', price:1.50, desc:'Soft baked cookie loaded with chocolate chips.', specs:{Weight:'55g', Slot:'C4', Allergens:'Gluten, Dairy', Stock:'7'}, sku:'SNK-004', badge:null, inStock:true },
+  { id:'m1', cat:'tech', emoji:'👕', name:'Classic Tee', price:25.00, desc:'100% cotton crew neck. Printed with the ESP logo on the chest.', specs:{Sizes:'S / M / L / XL', Material:'Cotton', Colour:'Black', Stock:'4'}, sku:'MRC-001', badge:'LIMITED', inStock:true },
+  { id:'m2', cat:'tech', emoji:'🧢', name:'Snap Cap', price:18.00, desc:'Adjustable snapback cap. One size fits all.', specs:{Material:'Polyester', Colour:'Black/Yellow', Style:'Snapback', Stock:'6'}, sku:'MRC-002', badge:null, inStock:true },
+  { id:'x1', cat:'Ben Suprise / Activities', emoji:'🔋', name:'AA Batteries (4pk)', price:5.00, desc:'High performance AA alkaline batteries. Long lasting.', specs:{Count:'4', Type:'AA Alkaline', Brand:'Generic', Stock:'10'}, sku:'MSC-001', badge:null, inStock:true },
+  { id:'x2', cat:'Ben Suprise / Activities', emoji:'🔌', name:'USB-C Cable 1m', price:8.00, desc:'Braided USB-C to USB-A cable. 3A fast charge capable.', specs:{Length:'1m', Rating:'3A / 60W', Colour:'Black', Stock:'3'}, sku:'MSC-002', badge:'LAST FEW', inStock:true },
+];
+
+let cart = [];
+let selectedProduct = null;
+let qty = 1;
+let activeDetail = false;
+let activeCart = false;
+
+function renderProducts(){
+  const cats = ['perfume','cloths','tech','Ben Suprise / Activities'];
+  cats.forEach(cat => {
+    const grid = document.getElementById('grid-' + cat);
+    const items = products.filter(p => p.cat === cat);
+    grid.innerHTML = items.map((p, i) => `
+      <div class="product-card" id="card-${p.id}" onclick="openDetail('${p.id}')" style="animation-delay:${i*0.07}s">
+        <div class="product-img">
+          <span style="font-size:52px">${p.emoji}</span>
+          ${p.badge ? `<div class="product-badge${!p.inStock?' oos':''}">${p.badge}</div>` : ''}
+        </div>
+        <div class="product-info">
+          <div class="product-name">${p.name}</div>
+          <div class="product-desc">${p.desc.substring(0,60)}…</div>
+          <div class="product-footer">
+            <div class="product-price">$${p.price.toFixed(2)} <span>AUD</span></div>
+            <button class="add-btn" ${!p.inStock?'disabled':''} onclick="event.stopPropagation();quickAdd('${p.id}')">
+              ${p.inStock ? '+ ADD' : 'OOS'}
+            </button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  });
+}
+
+document.querySelectorAll('.cat-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const cat = tab.dataset.cat;
+    document.querySelectorAll('.cat-section').forEach(sec => {
+      if(cat === 'all') sec.classList.add('active');
+      else sec.classList.toggle('active', sec.dataset.cat === cat);
+    });
+  });
+});
+
+function openDetail(id){
+  selectedProduct = products.find(p => p.id === id);
+  qty = 1;
+  document.getElementById('qty-num').textContent = qty;
+  document.getElementById('panel-emoji').textContent = selectedProduct.emoji;
+  document.getElementById('panel-name').textContent = selectedProduct.name;
+  document.getElementById('panel-price').innerHTML = `$${selectedProduct.price.toFixed(2)} <span>AUD</span>`;
+  document.getElementById('panel-desc').textContent = selectedProduct.desc;
+  document.getElementById('panel-sku').textContent = selectedProduct.sku;
+  document.getElementById('panel-cat-label').textContent = `// ${selectedProduct.cat.toUpperCase()}`;
+  const specs = selectedProduct.specs;
+  document.getElementById('panel-specs').innerHTML = Object.entries(specs).map(([k,v]) =>
+    `<div class="spec-row"><span class="spec-key">${k}</span><span class="spec-val">${v}</span></div>`
+  ).join('');
+  const addBtn = document.getElementById('panel-add-btn');
+  if(selectedProduct.inStock){ addBtn.disabled = false; addBtn.textContent = 'ADD TO CART'; }
+  else { addBtn.disabled = true; addBtn.textContent = 'OUT OF STOCK'; }
+  document.querySelectorAll('.product-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('card-' + id)?.classList.add('selected');
+  document.getElementById('detail-panel').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+  activeDetail = true;
+}
+
+function closeDetail(){
+  document.getElementById('detail-panel').classList.remove('open');
+  if(!activeCart) document.getElementById('overlay').classList.remove('open');
+  document.querySelectorAll('.product-card').forEach(c => c.classList.remove('selected'));
+  activeDetail = false;
+}
+
+function changeQty(d){
+  qty = Math.max(1, qty + d);
+  document.getElementById('qty-num').textContent = qty;
+}
+
+function addToCart(){
+  if(!selectedProduct || !selectedProduct.inStock) return;
+  const existing = cart.find(i => i.id === selectedProduct.id);
+  if(existing) existing.qty += qty;
+  else cart.push({...selectedProduct, qty});
+  updateCart();
+  showToast(`▸ ${selectedProduct.name} added to cart`);
+  closeDetail();
+}
+
+function quickAdd(id){
+  const p = products.find(x => x.id === id);
+  if(!p || !p.inStock) return;
+  const existing = cart.find(i => i.id === id);
+  if(existing) existing.qty++;
+  else cart.push({...p, qty:1});
+  updateCart();
+  showToast(`▸ ${p.name} added to cart`);
+}
+
+function removeFromCart(id){
+  cart = cart.filter(i => i.id !== id);
+  updateCart();
+}
+
+function updateCart(){
+  const count = cart.reduce((s,i) => s + i.qty, 0);
+  const total = cart.reduce((s,i) => s + i.price * i.qty, 0);
+  document.getElementById('cart-count').textContent = count;
+  document.getElementById('cart-total').textContent = `$${total.toFixed(2)}`;
+  document.getElementById('checkout-btn').disabled = cart.length === 0;
+  const itemsEl = document.getElementById('cart-items');
+  if(cart.length === 0){
+    itemsEl.innerHTML = '<div class="cart-empty"><span class="cart-empty-icon">🛒</span>YOUR CART IS EMPTY</div>';
+  } else {
+    itemsEl.innerHTML = cart.map(i => `
+      <div class="cart-item">
+        <div class="cart-item-emoji">${i.emoji}</div>
+        <div class="cart-item-info">
+          <div class="cart-item-name">${i.name}</div>
+          <div class="cart-item-qty">Qty: ${i.qty} × $${i.price.toFixed(2)}</div>
+        </div>
+        <div class="cart-item-price">$${(i.price * i.qty).toFixed(2)}</div>
+        <button class="remove-btn" onclick="removeFromCart('${i.id}')">✕</button>
+      </div>
+    `).join('');
+  }
+}
+
+function openCart(){
+  closeDetail();
+  document.getElementById('cart-drawer').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+  activeCart = true;
+}
+
+function closeCart(){
+  document.getElementById('cart-drawer').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+  activeCart = false;
+}
+
+function closeAll(){
+  if(activeDetail) closeDetail();
+  if(activeCart) closeCart();
+}
+
+function openConfirm(){
+  const total = cart.reduce((s,i) => s + i.price * i.qty, 0);
+  const lines = cart.map(i => `${i.qty}× ${i.name}`).join(', ');
+  document.getElementById('confirm-summary').textContent = `Order: ${lines}. Total: $${total.toFixed(2)} AUD. Ready to send!`;
+  document.getElementById('confirm-modal').classList.add('open');
+}
+
+function closeConfirm(){
+  document.getElementById('confirm-modal').classList.remove('open');
+}
+
+function placeOrder(){
+  const total = cart.reduce((s,i) => s + i.price * i.qty, 0);
+  const lines = cart.map(i => `${i.emoji} ${i.qty}x ${i.name} — $${(i.price * i.qty).toFixed(2)} AUD`).join('\n');
+
+  const confirmBtn = document.querySelector('.modal-confirm');
+  confirmBtn.textContent = 'SENDING...';
+  confirmBtn.disabled = true;
+
+  emailjs.send('service_v6q6vp9', 'template_70lnl83', {
+    order_summary: lines,
+    order_total: '$' + total.toFixed(2) + ' AUD'
+  }).then(() => {
+    closeConfirm();
+    closeCart();
+    cart = [];
+    updateCart();
+    showToast('✓ ORDER PLACED — email sent! 🎂');
+  }).catch((err) => {
+    console.error('EmailJS error:', err);
+    closeConfirm();
+    showToast('⚠ Order saved — email failed');
+  }).finally(() => {
+    confirmBtn.textContent = 'CONFIRM';
+    confirmBtn.disabled = false;
+  });
+}
+
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = h.scrollTop / (h.scrollHeight - h.clientHeight) * 100;
+  document.getElementById('progress').style.width = pct + '%';
+});
+
+renderProducts();
+</script>
+</body>
+</html>
